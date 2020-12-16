@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1cfac2dd0e493ad4e8e0c5670bde6af6, type: 3}
+  m_Name: B
+  m_EditorClassIdentifier: 
+  weightsInputToHidden:
+    matrix:
+    - 2.3734539
+    - 2.290758
+    - 8.792451
+    - -7.423927
+    - 6.4205394
+    - -8.603987
+    - -2.819486
+    - -2.6510932
+    colums: 2
+    rows: 4
+  weightsHiddenToOutput:
+    matrix:
+    - 3.8668742
+    - -13.366106
+    - 13.613742
+    - -2.542441
+    colums: 4
+    rows: 1
+  biasHidden: []
+  biasOutput: []
+  networkSet: 1
