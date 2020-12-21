@@ -167,6 +167,49 @@ public class Matrix
         return newMatrix;
     }
 
+    public static float[] MatrixMultiplicationColumMatch(Matrix a, float[] b)
+    {
+        if (a.Colums != b.Length)
+        {
+            throw new Exception("Matrix A width needs to be same as matrix B height");
+            //return null;
+        }
+        float[] newMatrix = new float[a.rows];
+        for (int y = 0; y < a.rows; y++)
+        {
+            float sum = 0;
+            for (int x = 0; x < a.colums; x++)
+            {
+                float av = a.GetMatrixElement(y, x);
+                float bv = b[x];
+                sum += av * bv;
+            }
+            newMatrix[y] = sum;
+        }
+        return newMatrix;
+    }
+
+    public static float[] MatrixMultiplicationRowMatch(Matrix a, float[] b)
+    {
+        //if (a.rows != b.Length)
+        //{
+        //    throw new Exception("Matrix A width needs to be same as matrix B height");
+        //    //return null;
+        //}
+        float[] newMatrix = new float[a.colums];
+        for (int y = 0; y < a.rows; y++)
+        {
+            float sum = 0;
+            for (int x = 0; x < a.colums; x++)
+            {
+                float av = a.GetMatrixElement(y, x);
+                float bv = b[x];
+                sum += av * bv;
+            }
+            newMatrix[y] = sum;
+        }
+        return newMatrix;
+    }
     public static Matrix MatrixMultiplication(float[] a, Matrix b)
     {
         if (b.rows != 1)
