@@ -76,7 +76,6 @@ public class NeuralNetwork_Matrix
     {
         Matrix hidden = Matrix.MultiplyDotProduct(weightsInputToHidden, inputNodes);
         hidden.Add(biasHidden);
-
         hidden.Map(activationFunction.Activation);
 
         Matrix output = Matrix.MatrixMultiplication(weightsHiddenToOutput, hidden);
@@ -89,7 +88,7 @@ public class NeuralNetwork_Matrix
     public void Train(float[] inputArray, float[] targetArray)
     {
         // Generating the Hidden Outputs
-        //Matrix inputs = new Matrix(inputArray);
+        Matrix inputs = new Matrix(inputArray);
         Matrix hidden = new Matrix(Matrix.MatrixMultiplicationColumMatch(weightsInputToHidden, inputArray));
         hidden.Add(biasHidden);
         // activation function!
@@ -135,9 +134,9 @@ public class NeuralNetwork_Matrix
         //Debug.Log("Gradient " + hidden_gradient.Colums + ": " + hidden_gradient.Rows);
 
         // Calcuate input->hidden deltas
-        //Matrix inputs_T = inputs.GetTransposedClone();
-        float[] weight_ih_deltas = Matrix.MatrixMultiplicationRowMatch(hidden_gradient, inputArray);
-        // Matrix weight_ih_deltas = Matrix.MatrixMultiplication(hidden_gradient.ToArray(), inputs_T);
+        Matrix inputs_T = inputs.GetTransposedClone();
+        //float[] weight_ih_deltas = Matrix.MatrixMultiplicationRowMatch(hidden_gradient, inputArray);
+        Matrix weight_ih_deltas = Matrix.MatrixMultiplication(hidden_gradient, inputs_T);
 
         this.weightsInputToHidden.Add(weight_ih_deltas);
         // Adjust the bias by its deltas (which is just the gradients)

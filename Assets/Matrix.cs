@@ -196,11 +196,18 @@ public class Matrix
         //    throw new Exception("Matrix A width needs to be same as matrix B height");
         //    //return null;
         //}
+
+        //[,]
+        //[,]
+        //[,]
+        //[,]
+        //[,,,]
+
         float[] newMatrix = new float[a.colums];
-        for (int y = 0; y < a.rows; y++)
+        for (int y = 0; y < a.colums; y++)
         {
             float sum = 0;
-            for (int x = 0; x < a.colums; x++)
+            for (int x = 0; x < a.rows; x++)
             {
                 float av = a.GetMatrixElement(y, x);
                 float bv = b[x];
