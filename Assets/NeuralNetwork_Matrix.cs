@@ -12,6 +12,7 @@ public class NeuralNetwork_Matrix
 
     Matrix weightsInputToHidden;
     Matrix weightsHiddenToOutput;
+
     float[] biasHidden;
     float[] biasOutput;
 
