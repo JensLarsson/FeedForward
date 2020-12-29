@@ -41,13 +41,13 @@ public class TrainedNetworkSO : ScriptableObject
     public int HiddenNodeCount => nodeCounts[1];
     public int OutputNodeCount => nodeCounts[2];
 
-    public Matrix WeightsInputToHidden() => new Matrix(weightsInputToHidden);
-    public Matrix WeightsHiddenToOutput => new Matrix(weightsHiddenToOutput);
+    public float[,] WeightsInputToHidden => weightsInputToHidden.GetMatrix();
+    public float[,] WeightsHiddenToOutput => weightsHiddenToOutput.GetMatrix();
     public float[] BiasHidden => biasHidden;
     public float[] BiasOutput => biasOutput;
 
     public float LearningRate => learningRate;
-    public ActivationFunction ativationFunction => activationFunc;
+    public ActivationFunctions ActivationFunction => activationFunc.savedFunctionIndex;
 }
 
 [System.Serializable]
@@ -57,20 +57,31 @@ public class FlatMatrix
     public int colums;
     public int rows;
 
-    public FlatMatrix(Matrix mat)
+    public FlatMatrix(float[,] mat)
     {
-        matrix = new float[mat.Colums * mat.Rows];
-        colums = mat.Colums;
-        rows = mat.Rows;
-        Debug.Log(colums);
-        Debug.Log(rows);
-        Debug.Log(matrix.Length);
-        for (int y = 0; y < rows; y++)
+        Debug.Log(mat == null);
+        colums = mat.GetLength(0);
+        rows = mat.GetLength(1);
+        matrix = new float[colums * rows];
+        for (int i = 0; i < colums; i++)
         {
-            for (int x = 0; x < colums; x++)
+            for (int j = 0; j < rows; j++)
             {
-                matrix[x + y * colums] = mat.GetMatrix()[y][x];
+                matrix[j + i * rows] = mat[i, j];
             }
         }
+    }
+
+    public float[,] GetMatrix()
+    {
+        float[,] newMatrix = new float[colums, rows];
+        for (int i = 0; i < colums; i++)
+        {
+            for (int j = 0; j < rows; j++)
+            {
+                newMatrix[i, j] = matrix[j + i * rows];
+            }
+        }
+        return newMatrix;
     }
 }

@@ -18,7 +18,7 @@ public class ImageRecognitionNetwork : MonoBehaviour
     NeuralNetwork_Matrix neuralNetwork;
     TrainingData[] trainingData;
     // Start is called before the first frame update
-    void Awake()
+    void Start()
     {
         if (trainedNetwork == null || (trainedNetwork != null && !trainedNetwork.networkSet))
         {
@@ -48,7 +48,7 @@ public class ImageRecognitionNetwork : MonoBehaviour
                   (trainingData[0].input.Length + trainingData[0].targetResult.Length) / 2,
                    trainingData[0].targetResult.Length);
 
-            TrainNeuralNetwork();
+            neuralNetwork.TrainNeuralNetwork(trainingData, trainingData.Length / 1000);
 
             if (trainedNetwork != null)
             {
@@ -74,13 +74,13 @@ public class ImageRecognitionNetwork : MonoBehaviour
 
 
 
-    public void TrainNeuralNetwork()
-    {
-        for (int i = 0; i < trainingImages.imageCount/1000; i++)
-        {
-            neuralNetwork.Train(trainingData[i].input, trainingData[i].targetResult);
-        }
-    }
+    //public void TrainNeuralNetwork()
+    //{
+    //    for (int i = 0; i < trainingImages.imageCount/1000; i++)
+    //    {
+    //        neuralNetwork.Train(trainingData[i].input, trainingData[i].targetResult);
+    //    }
+    //}
 
     public void TestNeuralNetwork()
     {

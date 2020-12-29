@@ -49,19 +49,64 @@ public class TestScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        neuralNetwork = new NeuralNetwork_Matrix(2, 4, 1);
-        Debug.Log(trainingData.Length);
-        for (int i = 0; i < 100_000; i++)
+
+        if (trainedNetworkA.networkSet)
         {
-            int random = Random.Range(0, trainingData.Length);
-            neuralNetwork.Train(trainingData[random].input, trainingData[random].targetResult);
+            neuralNetwork = new NeuralNetwork_Matrix(trainedNetworkA);
         }
-        trainedNetworkA.SetNetworkVariables(neuralNetwork);
+        else
+        {
+            neuralNetwork = new NeuralNetwork_Matrix(2, 4, 1);
 
-        neuralNetwork = new NeuralNetwork_Matrix(trainedNetworkA);
+            neuralNetwork.TrainNeuralNetwork(trainingData, 100_000, true);
 
-        trainedNetworkB.SetNetworkVariables(neuralNetwork);
+
+            trainedNetworkA.SetNetworkVariables(neuralNetwork);
+
+            neuralNetwork = new NeuralNetwork_Matrix(trainedNetworkA);
+
+            trainedNetworkB.SetNetworkVariables(neuralNetwork);
+        }
+        TestNeuralNetwork(10_000);
+
+
 
 
     }
+
+
+    public void TestNeuralNetwork(int itterations)
+    {
+        int failsTotal = 0;
+        for (int i = 0; i < itterations; i++)
+        {
+            int random = UnityEngine.Random.Range(0, trainingData.Length);
+            float[] result = neuralNetwork.Predict(trainingData[random].input);
+            if (!IsResultCorrect(result, trainingData[random].targetResult))
+            {
+                failsTotal++;
+            }
+        }
+        Debug.Log($"{failsTotal} fails:");
+        Debug.Log((1 - (float)failsTotal / (float)(itterations)) * 100 + " % accurate");
+    }
+
+    bool IsResultCorrect(float[] guess, float[] answer)
+    {
+        int guessIndex = 0;
+        int answerIndex = 0;
+        for (int i = 1; i < guess.Length; i++)
+        {
+            if (guess[i] > guess[guessIndex])
+            {
+                guessIndex = i;
+            }
+            if (answer[i] > answer[guessIndex])
+            {
+                answerIndex = i;
+            }
+        }
+        return guessIndex == answerIndex;
+    }
+
 }

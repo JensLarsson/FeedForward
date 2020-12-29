@@ -30,11 +30,8 @@ public class IrisPrediction : MonoBehaviour
         NeuralNetwork_Matrix neuralNetwork = new NeuralNetwork_Matrix(
                 trainingData[0].input.Length, 7, trainingData[0].targetResult.Length);
 
-        for (int i = 0; i < 10_000; i++)
-        {
-            int random = Random.Range(0, trainingData.Length);
-            neuralNetwork.Train(trainingData[random].input, trainingData[random].targetResult);
-        }
+        neuralNetwork.TrainNeuralNetwork(trainingData, 10_000, true);
+
         int itterations = 100;
         int fails = 0;
         for (int i = 0; i < itterations; i++)

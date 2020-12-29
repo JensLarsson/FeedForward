@@ -10,8 +10,8 @@ public class NeuralNetwork_Matrix
     int hiddenNodeCount;
     int outputNodeCount;
 
-    Matrix weightsInputToHidden;
-    Matrix weightsHiddenToOutput;
+    float[,] weightsInputToHidden;
+    float[,] weightsHiddenToOutput;
 
     float[] biasHidden;
     float[] biasOutput;
@@ -24,11 +24,10 @@ public class NeuralNetwork_Matrix
         inputNodeCount = inputCount;
         hiddenNodeCount = hiddenCount;
         outputNodeCount = outputCount;
-
-        weightsInputToHidden = new Matrix(hiddenCount, inputCount);
-        weightsHiddenToOutput = new Matrix(outputCount, hiddenCount);
-        weightsInputToHidden.RandomizeValues();
-        weightsHiddenToOutput.RandomizeValues();
+        weightsInputToHidden = new float[hiddenCount, inputCount];
+        weightsHiddenToOutput = new float[outputCount, hiddenCount];
+        RandomizeValues(weightsInputToHidden);
+        RandomizeValues(weightsHiddenToOutput);
 
         biasHidden = new float[hiddenCount];
         biasOutput = new float[outputCount];
@@ -40,17 +39,12 @@ public class NeuralNetwork_Matrix
         {
             biasOutput[i] = UnityEngine.Random.Range(0f, 1f);
         }
-        //biasHidden = new Matrix(hiddenCount, 1);
-        //biasOutput = new Matrix(outputCount, 1);
-        //biasHidden.RandomizeValues();
-        //biasOutput.RandomizeValues();
 
         activationFunction = new ActivationFunction(activation);
 
         Debug.Log("input layers: " + inputCount);
         Debug.Log("hidden layers: " + hiddenCount);
         Debug.Log("output layers: " + outputCount);
-
     }
 
     public NeuralNetwork_Matrix(TrainedNetworkSO trainedNetwork)
@@ -59,90 +53,257 @@ public class NeuralNetwork_Matrix
         hiddenNodeCount = trainedNetwork.HiddenNodeCount;
         outputNodeCount = trainedNetwork.OutputNodeCount;
 
-        weightsInputToHidden = trainedNetwork.WeightsInputToHidden();
+        weightsInputToHidden = trainedNetwork.WeightsInputToHidden;
         weightsHiddenToOutput = trainedNetwork.WeightsHiddenToOutput;
 
         biasHidden = trainedNetwork.BiasHidden;
         biasOutput = trainedNetwork.BiasOutput;
 
-        activationFunction = trainedNetwork.ativationFunction;
+        activationFunction = new ActivationFunction(trainedNetwork.ActivationFunction);
 
         Debug.Log("input layers: " + inputNodeCount);
         Debug.Log("hidden layers: " + hiddenNodeCount);
         Debug.Log("output layers: " + outputNodeCount);
     }
 
+    public void TrainNeuralNetwork(TrainingData[] trainingData, int itterations = -1, bool randomizeTrainingData = false)
+    {
+        if (randomizeTrainingData)
+        {
+            for (int i = 0; i < itterations; i++)
+            {
+                int random = UnityEngine.Random.Range(0, trainingData.Length);
+                Train(trainingData[random].input, trainingData[random].targetResult);
+            }
+        }
+        else
+        {
+            if (itterations == -1)
+            {
+                itterations = trainingData.Length;
+            }
+            for (int i = 0; i < itterations; i++)
+            {
+                Train(trainingData[i].input, trainingData[i].targetResult);
+            }
+        }
+    }
+
     //Guesses the output value based on network matrixes
     public float[] Predict(float[] inputNodes)
     {
-        Matrix hidden = Matrix.MultiplyDotProduct(weightsInputToHidden, inputNodes);
-        hidden.Add(biasHidden);
-        hidden.Map(activationFunction.Activation);
+        float[] hidden = MultiplyValuesWithWeights(weightsInputToHidden, inputNodes);
+        RunActivationFunction(ref hidden, activationFunction.Activation);
 
-        Matrix output = Matrix.MatrixMultiplication(weightsHiddenToOutput, hidden);
-        output.Add(biasOutput);
-        output.Map(activationFunction.Activation);
-
-        return output.ToArray();
+        float[] output = MultiplyValuesWithWeights(weightsHiddenToOutput, hidden);
+        AddBias(ref output, biasOutput);
+        RunActivationFunction(ref output, activationFunction.Activation);
+        return output;
     }
 
-    public void Train(float[] inputArray, float[] targetArray)
+    void Train(float[] inputArray, float[] targetArray)
     {
         // Generating the Hidden Outputs
-        Matrix inputs = new Matrix(inputArray);
-        Matrix hidden = new Matrix(Matrix.MatrixMultiplicationColumMatch(weightsInputToHidden, inputArray));
-        hidden.Add(biasHidden);
-        // activation function!
-        hidden.Map(activationFunction.Activation);
+        float[] hidden = MultiplyValuesWithWeights(weightsInputToHidden, inputArray);
+        RunActivationFunction(ref hidden, activationFunction.Activation);
 
-        // Generating the output's output!
-        Matrix outputs = Matrix.MatrixMultiplication(weightsHiddenToOutput, hidden);
-        outputs.Add(biasOutput);
-        outputs.Map(activationFunction.Activation);
-
-        // Convert array to matrix object
-        Matrix targets = new Matrix(targetArray);
+        float[] outputs = MultiplyValuesWithWeights(weightsHiddenToOutput, hidden);
+        AddBias(ref outputs, biasOutput);
+        //// activation function!
+        RunActivationFunction(ref outputs, activationFunction.Activation);
 
         // Calculate the error
         // ERROR = TARGETS - OUTPUTS
-        Matrix output_errors = Matrix.Subtract(targets, outputs);
+        float[] outputErrors = CalculateDifference(targetArray, outputs);
 
-        // let gradient = outputs * (1 - outputs);
         // Calculate gradient
-        Matrix gradients = Matrix.MapClone(outputs, activationFunction.Activation);
-        gradients.MultiplyHadamardProduct(output_errors);
-        gradients.MultiplyScalarProduct(learningRate);
-        //Debug.Log("Gradient " + gradients.Colums + ": " + gradients.Rows);
+        float[] gradience = (float[])outputs.Clone();
+        RunActivationFunction(ref gradience, activationFunction.Activation);
+        MultiplyHadamardProduct(ref gradience, outputErrors);
+        for (int i = 0; i < gradience.Length; i++)
+        {
+            gradience[i] *= learningRate;
+        }
 
         // Calculate deltas
-        Matrix hidden_T = hidden.GetTransposedClone();
-        Matrix weight_ho_deltas = Matrix.MatrixMultiplication(gradients, hidden_T);
-        //Matrix weight_ho_deltas = Matrix.MatrixMultiplication(gradients.ToArray(), hidden_T);
+        float[,] weightHiddenToOutputDelta = ArrayMatrixMultiplication(gradience, hidden);
+
 
         // Adjust the weights by deltas
-        this.weightsHiddenToOutput.Add(weight_ho_deltas);
+        AdjustWeights(ref weightsHiddenToOutput, weightHiddenToOutputDelta);
+
         // Adjust the bias by its deltas (which is just the gradients)
-        Matrix.Add(ref this.biasOutput, gradients.ToArray());
+        AddBias(ref biasOutput, gradience);
 
         // Calculate the hidden layer errors
-        Matrix who_t = weightsHiddenToOutput.GetTransposedClone();
-        Matrix hidden_errors = Matrix.MatrixMultiplication(who_t, output_errors);
+        float[] hiddenErrors = MultiplyValuesWithWeightsTransposed(weightsHiddenToOutput, outputErrors);
 
         // Calculate hidden gradient
-        Matrix hidden_gradient = Matrix.MapClone(hidden, activationFunction.Deactivation);
-        hidden_gradient.MultiplyHadamardProduct(hidden_errors);
-        hidden_gradient.MultiplyScalarProduct(learningRate);
-        //Debug.Log("Gradient " + hidden_gradient.Colums + ": " + hidden_gradient.Rows);
+        float[] hiddenGradience = (float[])hidden.Clone();
+        RunActivationFunction(ref hiddenGradience, activationFunction.Deactivation);
+        MultiplyHadamardProduct(ref hiddenGradience, hiddenErrors);
+        for (int i = 0; i < hiddenGradience.Length; i++)
+        {
+            hiddenGradience[i] *= learningRate;
+        }
 
         // Calcuate input->hidden deltas
-        Matrix inputs_T = inputs.GetTransposedClone();
-        //float[] weight_ih_deltas = Matrix.MatrixMultiplicationRowMatch(hidden_gradient, inputArray);
-        Matrix weight_ih_deltas = Matrix.MatrixMultiplication(hidden_gradient, inputs_T);
+        float[,] weightsInputToHiddenDelta = ArrayMatrixMultiplication(hiddenGradience, inputArray);
+        AdjustWeights(ref weightsInputToHidden, weightsInputToHiddenDelta);
 
-        this.weightsInputToHidden.Add(weight_ih_deltas);
         // Adjust the bias by its deltas (which is just the gradients)
-        Matrix.Add(ref this.biasHidden, hidden_gradient.ToArray());
+        AddBias(ref biasHidden, hiddenGradience);
     }
+
+    void RandomizeValues(float[,] matrix)
+    {
+        for (int i = 0; i < matrix.GetLength(0); i++)
+        {
+            for (int j = 0; j < matrix.GetLength(1); j++)
+            {
+                matrix[i, j] = UnityEngine.Random.Range(-1f, 1f);
+            }
+        }
+    }
+
+    float[,] ArrayMatrixMultiplication(float[] a, float[] b)
+    {
+        float[,] newMatrix = new float[a.Length, b.Length];
+        for (int i = 0; i < a.Length; i++)
+        {
+            for (int j = 0; j < b.Length; j++)
+            {
+                newMatrix[i, j] = a[i] * b[j];
+            }
+        }
+        return newMatrix;
+    }
+    float[,] ArrayMatrixMultiplicationTransposed(float[] a, float[] b)
+    {
+        float[,] newMatrix = new float[a.Length, b.Length];
+        for (int i = 0; i < a.Length; i++)
+        {
+            for (int j = 0; j < b.Length; j++)
+            {
+                newMatrix[i, j] = a[i] * b[j];
+            }
+        }
+        return newMatrix;
+    }
+
+
+    //Multiplying each node with all weights
+    float[] MultiplyValuesWithWeights(float[,] weightMatrix, float[] value)
+    {
+        if (weightMatrix.GetLength(1) != value.Length)
+        {
+            throw new Exception("matrix dimmention missmatch");
+            return null;
+        }
+        float[] newMatrix = new float[weightMatrix.GetLength(0)];
+        for (int node = 0; node < newMatrix.Length; node++)
+        {
+            float sum = 0;
+            for (int weight = 0; weight < weightMatrix.GetLength(1); weight++)
+            {
+                sum += weightMatrix[node, weight] * value[weight];
+            }
+            newMatrix[node] = sum;
+        }
+        return newMatrix;
+    }
+
+    float[] MultiplyValuesWithWeightsTransposed(float[,] weightMatrix, float[] value)
+    {
+        if (weightMatrix.GetLength(0) != value.Length)
+        {
+            throw new Exception("matrix dimmention missmatch");
+            return null;
+        }
+        float[] newMatrix = new float[weightMatrix.GetLength(1)];
+        for (int node = 0; node < newMatrix.Length; node++)
+        {
+            float sum = 0;
+            for (int weight = 0; weight < weightMatrix.GetLength(0); weight++)
+            {
+                sum += weightMatrix[weight, node] * value[weight];
+            }
+            newMatrix[node] = sum;
+        }
+        return newMatrix;
+    }
+
+    void AddBias(ref float[] target, float[] bias)
+    {
+        if (target.Length != bias.Length)
+        {
+            throw new Exception("Arrays need to be same lenght");
+        }
+        else
+        {
+            for (int i = 0; i < target.Length; i++)
+            {
+                target[i] += bias[i];
+            }
+        }
+    }
+    void AdjustWeights(ref float[,] target, float[,] values)
+    {
+        if ((target.GetLength(0) != values.GetLength(0)) || (target.GetLength(1) != values.GetLength(1)))
+        {
+            throw new Exception("Arrays need to be matching size");
+        }
+        else
+        {
+            for (int i = 0; i < target.GetLength(0); i++)
+            {
+                for (int j = 0; j < target.GetLength(1); j++)
+                {
+                    target[i, j] += values[i, j];
+                }
+            }
+        }
+    }
+
+    float[] CalculateDifference(float[] target, float[] result)
+    {
+        if (target.Length != result.Length)
+        {
+            throw new Exception("Arrays need to be same lenght");
+        }
+        else
+        {
+            float[] difference = new float[target.Length];
+            for (int i = 0; i < target.Length; i++)
+            {
+                difference[i] = target[i] - result[i];
+            }
+            return difference;
+        }
+    }
+
+    void RunActivationFunction(ref float[] target, System.Func<float, float> function)
+    {
+        for (int i = 0; i < target.Length; i++)
+        {
+            target[i] = function(target[i]);
+        }
+    }
+    void MultiplyHadamardProduct(ref float[] target, float[] values)
+    {
+        if (target.Length != values.Length)
+        {
+            throw new Exception("Arrays need to be same lenght");
+        }
+        else
+        {
+            for (int i = 0; i < target.Length; i++)
+            {
+                target[i] *= values[i];
+            }
+        }
+    }
+
 
     public void SetLearningRate(float rate) => learningRate = rate;
     public void SetActivationFunction(ActivationFunctions function) =>
@@ -153,8 +314,8 @@ public class NeuralNetwork_Matrix
     public int getHiddenNodeCount => hiddenNodeCount;
     public int getOutputNodeCount => outputNodeCount;
 
-    public Matrix getWeightsInputToHidden => weightsInputToHidden;
-    public Matrix getWeightsHiddenToOutput => weightsHiddenToOutput;
+    public float[,] getWeightsInputToHidden => weightsInputToHidden;
+    public float[,] getWeightsHiddenToOutput => weightsHiddenToOutput;
     public float[] getBiasHidden => biasHidden;
     public float[] getBiasOutput => biasOutput;
 
@@ -173,8 +334,11 @@ public class ActivationFunction
     public Func<float, float> Activation => activation;
     public Func<float, float> Deactivation => deactivation;
 
+    public ActivationFunctions savedFunctionIndex;
+
     public ActivationFunction(ActivationFunctions functionIndex)
     {
+        savedFunctionIndex = functionIndex;
         activation = functionArray[(int)functionIndex];
         deactivation = functionArray[(int)functionIndex + 1];
     }

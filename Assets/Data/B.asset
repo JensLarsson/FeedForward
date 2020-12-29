@@ -14,24 +14,29 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   weightsInputToHidden:
     matrix:
-    - 2.3734539
-    - 2.290758
-    - 8.792451
-    - -7.423927
-    - 6.4205394
-    - -8.603987
-    - -2.819486
-    - -2.6510932
-    colums: 2
-    rows: 4
+    - -13.709996
+    - 4.3921914
+    - 3.2816143
+    - -8.662699
+    - -4.2647686
+    - -4.3625016
+    - -3.7464345
+    - 10.843459
+    colums: 4
+    rows: 2
   weightsHiddenToOutput:
     matrix:
-    - 3.8668742
-    - -13.366106
-    - 13.613742
-    - -2.542441
-    colums: 4
-    rows: 1
-  biasHidden: []
-  biasOutput: []
+    - 12.631348
+    - 5.3781466
+    - -19.992117
+    - -7.6069345
+    colums: 1
+    rows: 4
+  biasHidden:
+  - -163.44945
+  - -66.08263
+  - 197.9146
+  - 100.558334
+  biasOutput:
+  - 0.41034654
   networkSet: 1
