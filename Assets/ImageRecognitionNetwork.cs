@@ -29,7 +29,7 @@ public class ImageRecognitionNetwork : MonoBehaviour
             trainingData = new TrainingData[trainingImages.imageCount];
             uint pixelCount = trainingImages.pixelWidth * trainingImages.pixelHeight;
 
-            for (int i = 0; i < trainingImages.imageCount ; i++)
+            for (int i = 0; i < trainingImages.imageCount; i++)
             {
                 trainingData[i].input = new float[pixelCount];  //input nodes
                 trainingData[i].targetResult = new float[10];   //target nodes
@@ -48,7 +48,9 @@ public class ImageRecognitionNetwork : MonoBehaviour
                   (trainingData[0].input.Length + trainingData[0].targetResult.Length) / 2,
                    trainingData[0].targetResult.Length);
 
-            neuralNetwork.TrainNeuralNetwork(trainingData, trainingData.Length / 1000);
+
+            neuralNetwork.TrainNeuralNetwork(trainingData, 1);
+
 
             if (trainedNetwork != null)
             {
@@ -60,8 +62,8 @@ public class ImageRecognitionNetwork : MonoBehaviour
             neuralNetwork = new NeuralNetwork_Matrix(trainedNetwork);
         }
 
-        testImages.LoadBytesFromPath();
-        TestNeuralNetwork();
+        //testImages.LoadBytesFromPath();
+        //TestNeuralNetwork();
     }
     private void Update()
     {

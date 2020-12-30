@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 
@@ -15,6 +16,10 @@ public class NeuralNetwork_Matrix
 
     float[] biasHidden;
     float[] biasOutput;
+
+    float[] hiddenNodes;
+
+    float[] outputNodes;
 
     float learningRate = 0.1f;
 
@@ -92,64 +97,91 @@ public class NeuralNetwork_Matrix
     //Guesses the output value based on network matrixes
     public float[] Predict(float[] inputNodes)
     {
-        float[] hidden = MultiplyValuesWithWeights(weightsInputToHidden, inputNodes);
-        RunActivationFunction(ref hidden, activationFunction.Activation);
+        hiddenNodes = MultiplyValuesWithWeights(weightsInputToHidden, inputNodes);
+        RunActivationFunction(ref hiddenNodes, activationFunction.Activation);
 
-        float[] output = MultiplyValuesWithWeights(weightsHiddenToOutput, hidden);
-        AddBias(ref output, biasOutput);
-        RunActivationFunction(ref output, activationFunction.Activation);
-        return output;
+        outputNodes = MultiplyValuesWithWeights(weightsHiddenToOutput, hiddenNodes);
+        AddBias(ref outputNodes, biasOutput);
+        RunActivationFunction(ref outputNodes, activationFunction.Activation);
+
+        return outputNodes;
     }
 
     void Train(float[] inputArray, float[] targetArray)
     {
         // Generating the Hidden Outputs
-        float[] hidden = MultiplyValuesWithWeights(weightsInputToHidden, inputArray);
-        RunActivationFunction(ref hidden, activationFunction.Activation);
+        System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+        hiddenNodes = MultiplyValuesWithWeights(weightsInputToHidden, inputArray);
+        RunActivationFunction(ref hiddenNodes, activationFunction.Activation);
+        Debug.Log(sw.ElapsedTicks);
+        sw.Restart();
 
-        float[] outputs = MultiplyValuesWithWeights(weightsHiddenToOutput, hidden);
-        AddBias(ref outputs, biasOutput);
-        //// activation function!
-        RunActivationFunction(ref outputs, activationFunction.Activation);
+        outputNodes = MultiplyValuesWithWeights(weightsHiddenToOutput, hiddenNodes);
+        AddBias(ref outputNodes, biasOutput);
+        RunActivationFunction(ref outputNodes, activationFunction.Activation);
+        Debug.Log(sw.ElapsedTicks);
+        sw.Restart();
 
         // Calculate the error
         // ERROR = TARGETS - OUTPUTS
-        float[] outputErrors = CalculateDifference(targetArray, outputs);
+        float[] outputErrors = CalculateDifference(targetArray, outputNodes);
+        Debug.Log(sw.ElapsedTicks);
+        sw.Restart();
 
         // Calculate gradient
-        float[] gradience = (float[])outputs.Clone();
+        float[] gradience = (float[])outputNodes.Clone();
         RunActivationFunction(ref gradience, activationFunction.Activation);
         MultiplyHadamardProduct(ref gradience, outputErrors);
         for (int i = 0; i < gradience.Length; i++)
         {
             gradience[i] *= learningRate;
         }
+        Debug.Log(sw.ElapsedTicks);
+        sw.Restart();
 
         // Calculate deltas
-        float[,] weightHiddenToOutputDelta = ArrayMatrixMultiplication(gradience, hidden);
+        float[,] weightHiddenToOutputDelta = ArrayMatrixMultiplication(gradience, hiddenNodes);
+        Debug.Log(sw.ElapsedTicks);
+        Debug.Log(" ");
+        sw.Restart();
 
 
         // Adjust the weights by deltas
-        AdjustWeights(ref weightsHiddenToOutput, weightHiddenToOutputDelta);
+        MatrixAddition(ref weightsHiddenToOutput, weightHiddenToOutputDelta);
+        Debug.Log(sw.ElapsedTicks);
+        sw.Restart();
 
         // Adjust the bias by its deltas (which is just the gradients)
         AddBias(ref biasOutput, gradience);
+        Debug.Log(sw.ElapsedTicks);
+        sw.Restart();
 
         // Calculate the hidden layer errors
         float[] hiddenErrors = MultiplyValuesWithWeightsTransposed(weightsHiddenToOutput, outputErrors);
+        Debug.Log(sw.ElapsedTicks);
+        sw.Restart();
 
         // Calculate hidden gradient
-        float[] hiddenGradience = (float[])hidden.Clone();
+        float[] hiddenGradience = (float[])hiddenNodes.Clone();
         RunActivationFunction(ref hiddenGradience, activationFunction.Deactivation);
         MultiplyHadamardProduct(ref hiddenGradience, hiddenErrors);
         for (int i = 0; i < hiddenGradience.Length; i++)
         {
             hiddenGradience[i] *= learningRate;
         }
+        Debug.Log(sw.ElapsedTicks);
+        sw.Restart();
 
         // Calcuate input->hidden deltas
         float[,] weightsInputToHiddenDelta = ArrayMatrixMultiplication(hiddenGradience, inputArray);
-        AdjustWeights(ref weightsInputToHidden, weightsInputToHiddenDelta);
+        Debug.Log(sw.ElapsedTicks);
+        Debug.Log(" ");
+        sw.Restart();
+        MatrixAddition(ref weightsInputToHidden, weightsInputToHiddenDelta);
+        Debug.Log(sw.ElapsedTicks);
+        sw.Restart();
+        Debug.Log(sw.ElapsedTicks);
+        sw.Restart();
 
         // Adjust the bias by its deltas (which is just the gradients)
         AddBias(ref biasHidden, hiddenGradience);
@@ -170,27 +202,16 @@ public class NeuralNetwork_Matrix
     {
         float[,] newMatrix = new float[a.Length, b.Length];
         for (int i = 0; i < a.Length; i++)
+        //Parallel.For(0, a.Length, (int i) =>
         {
             for (int j = 0; j < b.Length; j++)
+            //Parallel.For(0, b.Length, (int j) =>
             {
                 newMatrix[i, j] = a[i] * b[j];
             }
         }
         return newMatrix;
     }
-    float[,] ArrayMatrixMultiplicationTransposed(float[] a, float[] b)
-    {
-        float[,] newMatrix = new float[a.Length, b.Length];
-        for (int i = 0; i < a.Length; i++)
-        {
-            for (int j = 0; j < b.Length; j++)
-            {
-                newMatrix[i, j] = a[i] * b[j];
-            }
-        }
-        return newMatrix;
-    }
-
 
     //Multiplying each node with all weights
     float[] MultiplyValuesWithWeights(float[,] weightMatrix, float[] value)
@@ -201,7 +222,8 @@ public class NeuralNetwork_Matrix
             return null;
         }
         float[] newMatrix = new float[weightMatrix.GetLength(0)];
-        for (int node = 0; node < newMatrix.Length; node++)
+        //for (int node = 0; node < newMatrix.Length; node++)
+        Parallel.For(0, newMatrix.Length, (int node) =>
         {
             float sum = 0;
             for (int weight = 0; weight < weightMatrix.GetLength(1); weight++)
@@ -209,7 +231,7 @@ public class NeuralNetwork_Matrix
                 sum += weightMatrix[node, weight] * value[weight];
             }
             newMatrix[node] = sum;
-        }
+        });
         return newMatrix;
     }
 
@@ -221,7 +243,8 @@ public class NeuralNetwork_Matrix
             return null;
         }
         float[] newMatrix = new float[weightMatrix.GetLength(1)];
-        for (int node = 0; node < newMatrix.Length; node++)
+        //for (int node = 0; node < newMatrix.Length; node++)
+        Parallel.For(0, newMatrix.Length, (int node) =>
         {
             float sum = 0;
             for (int weight = 0; weight < weightMatrix.GetLength(0); weight++)
@@ -229,7 +252,7 @@ public class NeuralNetwork_Matrix
                 sum += weightMatrix[weight, node] * value[weight];
             }
             newMatrix[node] = sum;
-        }
+        });
         return newMatrix;
     }
 
@@ -247,7 +270,7 @@ public class NeuralNetwork_Matrix
             }
         }
     }
-    void AdjustWeights(ref float[,] target, float[,] values)
+    void MatrixAddition(ref float[,] target, float[,] values)
     {
         if ((target.GetLength(0) != values.GetLength(0)) || (target.GetLength(1) != values.GetLength(1)))
         {
@@ -274,10 +297,11 @@ public class NeuralNetwork_Matrix
         else
         {
             float[] difference = new float[target.Length];
-            for (int i = 0; i < target.Length; i++)
+            // for (int i = 0; i < target.Length; i++)
+            Parallel.For(0, target.Length, (int i) =>
             {
                 difference[i] = target[i] - result[i];
-            }
+            });
             return difference;
         }
     }
@@ -289,6 +313,8 @@ public class NeuralNetwork_Matrix
             target[i] = function(target[i]);
         }
     }
+
+
     void MultiplyHadamardProduct(ref float[] target, float[] values)
     {
         if (target.Length != values.Length)
