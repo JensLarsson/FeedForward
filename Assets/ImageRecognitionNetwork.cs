@@ -62,7 +62,7 @@ public class ImageRecognitionNetwork : MonoBehaviour
             neuralNetwork = new NeuralNetwork_Matrix(trainedNetwork);
         }
 
-        //testImages.LoadBytesFromPath();
+        testImages.LoadBytesFromPath();
         //TestNeuralNetwork();
     }
     private void Update()
