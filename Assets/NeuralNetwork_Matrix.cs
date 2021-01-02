@@ -52,20 +52,26 @@ public class NeuralNetwork_Matrix
         Debug.Log("output layers: " + outputCount);
     }
 
-    public NeuralNetwork_Matrix(TrainedNetworkSO trainedNetwork)
+    public NeuralNetwork_Matrix(TrainedNetworkSO trainedNetwork, bool reversed = false)
     {
-        inputNodeCount = trainedNetwork.InputNodeCount;
-        hiddenNodeCount = trainedNetwork.HiddenNodeCount;
-        outputNodeCount = trainedNetwork.OutputNodeCount;
+        if (reversed == false)
+        {
+            inputNodeCount = trainedNetwork.InputNodeCount;
+            hiddenNodeCount = trainedNetwork.HiddenNodeCount;
+            outputNodeCount = trainedNetwork.OutputNodeCount;
 
-        weightsInputToHidden = trainedNetwork.WeightsInputToHidden;
-        weightsHiddenToOutput = trainedNetwork.WeightsHiddenToOutput;
+            weightsInputToHidden = trainedNetwork.WeightsInputToHidden;
+            weightsHiddenToOutput = trainedNetwork.WeightsHiddenToOutput;
 
-        biasHidden = trainedNetwork.BiasHidden;
-        biasOutput = trainedNetwork.BiasOutput;
+            biasHidden = trainedNetwork.BiasHidden;
+            biasOutput = trainedNetwork.BiasOutput;
 
-        activationFunction = new ActivationFunction(trainedNetwork.ActivationFunction);
+            activationFunction = new ActivationFunction(trainedNetwork.ActivationFunction);
+        }
+        else
+        {
 
+        }
         Debug.Log("input layers: " + inputNodeCount);
         Debug.Log("hidden layers: " + hiddenNodeCount);
         Debug.Log("output layers: " + outputNodeCount);
@@ -101,32 +107,41 @@ public class NeuralNetwork_Matrix
         RunActivationFunction(ref hiddenNodes, activationFunction.Activation);
 
         outputNodes = MultiplyValuesWithWeights(weightsHiddenToOutput, hiddenNodes);
+        AddBias(ref outputNodes, biasHidden);
+        RunActivationFunction(ref outputNodes, activationFunction.Activation);
+
+        return outputNodes;
+    }
+
+    public float[] PredictReverse(float[] inputNodes)
+    {
+        float[,] hiddenToOutput = GetTransposedCopy(weightsInputToHidden);
+        float[,] inputToHidden = GetTransposedCopy(weightsHiddenToOutput);
+
+        hiddenNodes = MultiplyValuesWithWeights(inputToHidden, inputNodes);
+        RunActivationFunction(ref hiddenNodes, activationFunction.Activation);
+
+        outputNodes = MultiplyValuesWithWeights(hiddenToOutput, hiddenNodes);
         AddBias(ref outputNodes, biasOutput);
         RunActivationFunction(ref outputNodes, activationFunction.Activation);
 
         return outputNodes;
     }
 
-    void Train(float[] inputArray, float[] targetArray)
+
+    public void Train(float[] inputArray, float[] targetArray)
     {
         // Generating the Hidden Outputs
-        System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
         hiddenNodes = MultiplyValuesWithWeights(weightsInputToHidden, inputArray);
         RunActivationFunction(ref hiddenNodes, activationFunction.Activation);
-        Debug.Log(sw.ElapsedTicks);
-        sw.Restart();
 
         outputNodes = MultiplyValuesWithWeights(weightsHiddenToOutput, hiddenNodes);
         AddBias(ref outputNodes, biasOutput);
         RunActivationFunction(ref outputNodes, activationFunction.Activation);
-        Debug.Log(sw.ElapsedTicks);
-        sw.Restart();
 
         // Calculate the error
         // ERROR = TARGETS - OUTPUTS
         float[] outputErrors = CalculateDifference(targetArray, outputNodes);
-        Debug.Log(sw.ElapsedTicks);
-        sw.Restart();
 
         // Calculate gradient
         float[] gradience = (float[])outputNodes.Clone();
@@ -136,30 +151,18 @@ public class NeuralNetwork_Matrix
         {
             gradience[i] *= learningRate;
         }
-        Debug.Log(sw.ElapsedTicks);
-        sw.Restart();
 
         // Calculate deltas
         float[,] weightHiddenToOutputDelta = ArrayMatrixMultiplication(gradience, hiddenNodes);
-        Debug.Log(sw.ElapsedTicks);
-        Debug.Log(" ");
-        sw.Restart();
-
 
         // Adjust the weights by deltas
         MatrixAddition(ref weightsHiddenToOutput, weightHiddenToOutputDelta);
-        Debug.Log(sw.ElapsedTicks);
-        sw.Restart();
 
         // Adjust the bias by its deltas (which is just the gradients)
         AddBias(ref biasOutput, gradience);
-        Debug.Log(sw.ElapsedTicks);
-        sw.Restart();
 
         // Calculate the hidden layer errors
         float[] hiddenErrors = MultiplyValuesWithWeightsTransposed(weightsHiddenToOutput, outputErrors);
-        Debug.Log(sw.ElapsedTicks);
-        sw.Restart();
 
         // Calculate hidden gradient
         float[] hiddenGradience = (float[])hiddenNodes.Clone();
@@ -169,19 +172,10 @@ public class NeuralNetwork_Matrix
         {
             hiddenGradience[i] *= learningRate;
         }
-        Debug.Log(sw.ElapsedTicks);
-        sw.Restart();
 
         // Calcuate input->hidden deltas
         float[,] weightsInputToHiddenDelta = ArrayMatrixMultiplication(hiddenGradience, inputArray);
-        Debug.Log(sw.ElapsedTicks);
-        Debug.Log(" ");
-        sw.Restart();
         MatrixAddition(ref weightsInputToHidden, weightsInputToHiddenDelta);
-        Debug.Log(sw.ElapsedTicks);
-        sw.Restart();
-        Debug.Log(sw.ElapsedTicks);
-        sw.Restart();
 
         // Adjust the bias by its deltas (which is just the gradients)
         AddBias(ref biasHidden, hiddenGradience);
@@ -328,6 +322,18 @@ public class NeuralNetwork_Matrix
                 target[i] *= values[i];
             }
         }
+    }
+    float[,] GetTransposedCopy(float[,] input)
+    {
+        float[,] copy = new float[input.GetLength(1), input.GetLength(0)];
+        for (int i = 0; i < input.GetLength(0); i++)
+        {
+            for (int j = 0; j < input.GetLength(1); j++)
+            {
+                copy[j, i] = input[i, j];
+            }
+        }
+        return copy;
     }
 
 

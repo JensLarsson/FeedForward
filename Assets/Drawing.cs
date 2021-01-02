@@ -6,14 +6,19 @@ using UnityEngine.EventSystems;
 
 public class Drawing : MonoBehaviour, IPointerDownHandler
 {
+    const int IMAGE_SIZE = 28;
+
+    [SerializeField] ImageRecognitionNetwork network;
+
+
+
     Image image;
     Camera camera;
     Canvas canvas;
     Vector2 size;
-    float[,] pixelArray = new float[28, 28];
+    float[] pixelArray = new float[28 * 28];
 
     bool drawing = false;
-
 
     private void Start()
     {
@@ -30,11 +35,7 @@ public class Drawing : MonoBehaviour, IPointerDownHandler
 
     private void Update()
     {
-        if (Input.GetMouseButtonUp(0))
-        {
-            drawing = false;
-        }
-        if (drawing)
+        if (drawing && Input.GetMouseButton(0))
         {
             Vector2 mouseInImagePos = Input.mousePosition - image.rectTransform.position;
             mouseInImagePos /= size;
@@ -43,20 +44,49 @@ public class Drawing : MonoBehaviour, IPointerDownHandler
             mouseInImagePos.y = 1 - mouseInImagePos.y;
 
 
-            if (mouseInImagePos.x > 0f || mouseInImagePos.x < 1f || mouseInImagePos.y > 0f || mouseInImagePos.y < 1f)
+            if (mouseInImagePos.x > 0f && mouseInImagePos.x < 1f && mouseInImagePos.y > 0f && mouseInImagePos.y < 1f)
             {
                 int x = (int)(mouseInImagePos.x * 28);
                 int y = (int)(mouseInImagePos.y * 28);
-                image.sprite.texture.SetPixel(x, y, Color.white);
+
+                for (int i = x > 0 ? x - 1 : 0; i <= (x == IMAGE_SIZE - 1 ? x : x + 1); i++)
+                {
+                    for (int j = y > 0 ? y - 1 : 0; j <= (y == IMAGE_SIZE - 1 ? y : y + 1); j++)
+                    {
+                        if (pixelArray[i + j * 28] < 0.1)
+                        {
+                            image.sprite.texture.SetPixel(i, j, new Color(0.9f, 0, 0));
+                            pixelArray[i + j * 28] = 0.9f;
+                        }
+                    }
+                }
+                image.sprite.texture.SetPixel(x, y, Color.red);
                 image.sprite.texture.Apply();
+                pixelArray[x + y * 28] = 1f;
 
-
+                network.TestImage(pixelArray);
             }
+        }
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            drawing = false;
         }
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        drawing = true;
+        if (!drawing)
+        {
+            pixelArray = new float[28 * 28];
+            //image.sprite.texture.SetPixels(0, 0, 28, 28, new Color[28 * 28]);
+            for (int i = 0; i < 28; i++)
+            {
+                for (int j = 0; j < 28; j++)
+                {
+                    image.sprite.texture.SetPixel(i, j, Color.black);
+                }
+            }
+            drawing = true;
+        }
     }
 }

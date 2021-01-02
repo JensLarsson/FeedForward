@@ -6,7 +6,7 @@ using UnityEngine;
 [System.Serializable]
 public class TrainedNetworkSO : ScriptableObject
 {
-    int[] nodeCounts;
+    public int[] nodeCounts;
     public FlatMatrix weightsInputToHidden;
     public FlatMatrix weightsHiddenToOutput;
     public float[] biasHidden;

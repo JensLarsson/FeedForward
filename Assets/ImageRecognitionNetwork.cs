@@ -7,8 +7,10 @@ using TMPro;
 
 public class ImageRecognitionNetwork : MonoBehaviour
 {
+    public bool testNetwork = true;
     [SerializeField] Image image;
-    [SerializeField] TMP_Text textMeshPro;
+    [SerializeField] TMP_Text guessText;
+    [SerializeField] TMP_Text certaintyText;
 
     [SerializeField] ImageArray trainingImages;
     [SerializeField] ImageArray testImages;
@@ -63,7 +65,11 @@ public class ImageRecognitionNetwork : MonoBehaviour
         }
 
         testImages.LoadBytesFromPath();
-        //TestNeuralNetwork();
+        if (testNetwork)
+        {
+            TestNeuralNetwork();
+        }
+        TestRandomImage();
     }
     private void Update()
     {
@@ -72,18 +78,6 @@ public class ImageRecognitionNetwork : MonoBehaviour
             TestRandomImage();
         }
     }
-
-
-
-
-    //public void TrainNeuralNetwork()
-    //{
-    //    for (int i = 0; i < trainingImages.imageCount/1000; i++)
-    //    {
-    //        neuralNetwork.Train(trainingData[i].input, trainingData[i].targetResult);
-    //    }
-    //}
-
     public void TestNeuralNetwork()
     {
         int[] fails = new int[10];
@@ -102,10 +96,19 @@ public class ImageRecognitionNetwork : MonoBehaviour
     }
     public void TestRandomImage()
     {
+        float certainty = 0;
         int random = Random.Range(0, (int)testImages.imageCount);
         float[] result = neuralNetwork.Predict(testImages.PixelValueArray[random]);
         image.sprite = Sprite.Create(testImages.GetImage(random), new Rect(0, 0, 28, 28), Vector2.zero);
-        textMeshPro.text = GetGuessedValue(result).ToString();
+        guessText.text = GetGuessedValue(result, ref certainty).ToString();
+        certaintyText.text = (certainty * 100f).ToString("F2") + '%';
+    }
+    public void TestImage(float[] input)
+    {
+        float certainty = 0;
+        float[] result = neuralNetwork.Predict(input);
+        guessText.text = GetGuessedValue(result, ref certainty).ToString();
+        certaintyText.text = (certainty * 100f).ToString("F2") + '%';
     }
 
     int GetGuessedValue(float[] values)
@@ -118,6 +121,19 @@ public class ImageRecognitionNetwork : MonoBehaviour
                 guess = i;
             }
         }
+        return guess;
+    }
+    int GetGuessedValue(float[] values, ref float certainty)
+    {
+        int guess = 0;
+        for (int i = 1; i < values.Length; i++)
+        {
+            if (values[i] > values[guess])
+            {
+                guess = i;
+            }
+        }
+        certainty = values[guess];
         return guess;
     }
 
