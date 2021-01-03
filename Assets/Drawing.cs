@@ -7,6 +7,7 @@ using UnityEngine.EventSystems;
 public class Drawing : MonoBehaviour, IPointerDownHandler
 {
     const int IMAGE_SIZE = 28;
+    const int PADDING = 2;
 
     [SerializeField] ImageRecognitionNetwork network;
 
@@ -43,28 +44,33 @@ public class Drawing : MonoBehaviour, IPointerDownHandler
             mouseInImagePos.y += 0.5f;
             mouseInImagePos.y = 1 - mouseInImagePos.y;
 
-
+            //Sloppy code to restrict drawing to the middle
+            //This should be replaced either with more training or normalizing the position of the drawn number
             if (mouseInImagePos.x > 0f && mouseInImagePos.x < 1f && mouseInImagePos.y > 0f && mouseInImagePos.y < 1f)
             {
                 int x = (int)(mouseInImagePos.x * 28);
                 int y = (int)(mouseInImagePos.y * 28);
 
-                for (int i = x > 0 ? x - 1 : 0; i <= (x == IMAGE_SIZE - 1 ? x : x + 1); i++)
+                if (x >= PADDING && x < IMAGE_SIZE - PADDING && y >= PADDING && y < IMAGE_SIZE - PADDING)
                 {
-                    for (int j = y > 0 ? y - 1 : 0; j <= (y == IMAGE_SIZE - 1 ? y : y + 1); j++)
+
+                    for (int i = x > PADDING ? x - 1 : PADDING; i <= (x >= IMAGE_SIZE - 1 - PADDING ? IMAGE_SIZE - 1 - PADDING : x + 1); i++)
                     {
-                        if (pixelArray[i + j * 28] < 0.1)
+                        for (int j = y > PADDING ? y - 1 : PADDING; j <= (y >= IMAGE_SIZE - 1 - PADDING ? IMAGE_SIZE - 1 - PADDING : y + 1); j++)
                         {
-                            image.sprite.texture.SetPixel(i, j, new Color(0.9f, 0, 0));
-                            pixelArray[i + j * 28] = 0.9f;
+                            if (pixelArray[i + j * 28] < 0.1)
+                            {
+                                image.sprite.texture.SetPixel(i, j, new Color(0.9f, 0, 0));
+                                pixelArray[i + j * 28] = 0.9f;
+                            }
                         }
                     }
-                }
-                image.sprite.texture.SetPixel(x, y, Color.red);
-                image.sprite.texture.Apply();
-                pixelArray[x + y * 28] = 1f;
+                    image.sprite.texture.SetPixel(x, y, Color.red);
+                    image.sprite.texture.Apply();
+                    pixelArray[x + y * 28] = 1f;
 
-                network.TestImage(pixelArray);
+                    network.TestImage(pixelArray);
+                }
             }
         }
         if (Input.GetKeyDown(KeyCode.Space))
