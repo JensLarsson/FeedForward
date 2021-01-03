@@ -22,7 +22,7 @@ public class FileByteTranslator : ScriptableObject
         Debug.Log(imageByteArray.Length);
     }
 }
-
+#if (UNITY_EDITOR)
 [CustomEditor(typeof(ImageArray))]
 public class CustomInspectorButton : Editor
 {
@@ -39,3 +39,4 @@ public class CustomInspectorButton : Editor
         }
     }
 }
+#endif

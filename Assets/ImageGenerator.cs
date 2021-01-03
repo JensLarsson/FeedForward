@@ -14,7 +14,6 @@ public class ImageGenerator : MonoBehaviour
     [SerializeField] Slider slider;
 
     [SerializeField] ImageArray trainingImages;
-    [SerializeField] ImageArray testImages;
 
     [SerializeField] TrainedNetworkSO trainedNetwork;
 
@@ -98,7 +97,7 @@ public class ImageGenerator : MonoBehaviour
     int targetNumber = 0;
     public void CreateImange()
     {
-        GeneratedNumber.text = targetNumber.ToString("F3");
+        GeneratedNumber.text = targetNumber.ToString();
 
         float[] input = new float[11];
         input[targetNumber] = 1;
@@ -113,63 +112,6 @@ public class ImageGenerator : MonoBehaviour
             }
         }
         image.sprite.texture.Apply();
-    }
-
-    public void TestNeuralNetwork()
-    {
-        int[] fails = new int[10];
-        int failsTotal = 0;
-        for (int i = 0; i < testImages.imageCount; i++)
-        {
-            float[] result = neuralNetwork.Predict(testImages.PixelValueArray[i]);
-            if (!IsResultCorrect(result, testImages.LabelValueArray[i]))
-            {
-                fails[testImages.LabelValueArray[i]]++;
-                failsTotal++;
-            }
-        }
-        Debug.Log($"{failsTotal} fails:");
-        Debug.Log((1 - (float)failsTotal / (float)(testImages.imageCount)) * 100 + " % accurate");
-    }
-
-    int GetGuessedValue(float[] values)
-    {
-        int guess = 0;
-        for (int i = 1; i < values.Length; i++)
-        {
-            if (values[i] > values[guess])
-            {
-                guess = i;
-            }
-        }
-        return guess;
-    }
-    int GetGuessedValue(float[] values, ref float certainty)
-    {
-        int guess = 0;
-        for (int i = 1; i < values.Length; i++)
-        {
-            if (values[i] > values[guess])
-            {
-                guess = i;
-            }
-        }
-        certainty = values[guess];
-        return guess;
-    }
-
-    bool IsResultCorrect(float[] guess, byte answer)
-    {
-        int guessIndex = 0;
-        for (int i = 1; i < guess.Length; i++)
-        {
-            if (guess[i] > guess[guessIndex])
-            {
-                guessIndex = i;
-            }
-
-        }
-        return guessIndex == answer;
     }
 
     public float RandomGaussian(float minValue = 0.0f, float maxValue = 1.0f)
