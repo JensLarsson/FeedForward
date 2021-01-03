@@ -494,6 +494,7 @@ GameObject:
   - component: {fileID: 1386837791}
   - component: {fileID: 1386837794}
   - component: {fileID: 1386837795}
+  - component: {fileID: 1386837797}
   - component: {fileID: 1386837796}
   m_Layer: 0
   m_Name: Main Camera
@@ -607,7 +608,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1386837790}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cdb8d751842ce044d9401b2c37b3968b, type: 3}
   m_Name: 
@@ -616,6 +617,23 @@ MonoBehaviour:
   image: {fileID: 1854660912}
   guessText: {fileID: 1879629638}
   certaintyText: {fileID: 936943627}
+  trainingImages: {fileID: 11400000, guid: 5dd56075933f6c04b9ae656cd4835605, type: 2}
+  testImages: {fileID: 11400000, guid: 46ed57e6707568543b134b125e3f4116, type: 2}
+  trainedNetwork: {fileID: 0}
+--- !u!114 &1386837797
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1386837790}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a43bb203d6e9bdc47ac33a3388011bcf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  testNetwork: 1
+  image: {fileID: 1854660912}
   trainingImages: {fileID: 11400000, guid: 5dd56075933f6c04b9ae656cd4835605, type: 2}
   testImages: {fileID: 11400000, guid: 46ed57e6707568543b134b125e3f4116, type: 2}
   trainedNetwork: {fileID: 0}
@@ -805,7 +823,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1854660910}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ac098bc4aceb75a40ba53a79e324fa03, type: 3}
   m_Name: 

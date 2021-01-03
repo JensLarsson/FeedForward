@@ -107,7 +107,7 @@ public class NeuralNetwork_Matrix
         RunActivationFunction(ref hiddenNodes, activationFunction.Activation);
 
         outputNodes = MultiplyValuesWithWeights(weightsHiddenToOutput, hiddenNodes);
-        AddBias(ref outputNodes, biasHidden);
+        AddBias(ref outputNodes, biasOutput);
         RunActivationFunction(ref outputNodes, activationFunction.Activation);
 
         return outputNodes;

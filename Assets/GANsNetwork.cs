@@ -89,16 +89,45 @@ public class GANsNetwork : MonoBehaviour
                  trainingData[random].targetResult[9],
                  RandomGaussian()
         };
-            float[] generatedOutput = generator.Predict(generatorInput);
+            float[] generatedImage = generator.Predict(generatorInput);
+            float[] realOutput = discriminator.Predict(trainingData[random].input);
+            float[] fakeOutput = discriminator.Predict(generatedImage);
 
-            if (i % 2 == 0)
-            {
-                discriminator.Train(trainingData[random].input, trainingData[random].targetResult);
-            }
+            float discriminatorLoss = CalculateLoss(realOutput);
+            float generatorLoss = CalculateLoss(fakeOutput);
+
+
         }
     }
+    float CalculateLoss(float[] input)
+    {
+        float sum = 0;
+        for (int i = 0; i < input.Length; i++)
+        {
+            sum += Mathf.Log(input[i], 2);
+        }
+        return -sum;
+    }
 
-    
+    //float CrossEntropy(float[] p, float[] q)
+    //{
+    //    float sum = 0;
+    //    for (int i = 0; i < p.Length; i++)
+    //    {
+    //        sum += p[i] * Mathf.Log(q[i], 2);
+    //    }
+    //    return -sum;
+    //}
+    //float CrossEntropyAllOnes(float[] q)
+    //{
+    //    float sum = 0;
+    //    for (int i = 0; i < p.Length; i++)
+    //    {
+    //        sum += 1 * Mathf.Log(q[i], 2);
+    //    }
+    //    return -sum;
+    //}
+
     public float RandomGaussian(float minValue = 0.0f, float maxValue = 1.0f)
     {
         float u, v, S;
