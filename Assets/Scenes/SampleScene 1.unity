@@ -593,7 +593,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 094e5e716bf4096449fea70775a04fd3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  testNetwork: 0
+  testNetwork: 1
   image: {fileID: 1854660912}
   guessText: {fileID: 1879629638}
   certaintyText: {fileID: 936943627}

@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 
 [CreateAssetMenu(fileName = "ImageArrayContainer")]
+[System.Serializable]
 public class ImageArray : FileByteTranslator
 {
     const int IMAGE_COUNT_OFFSET = 4;
@@ -15,11 +16,12 @@ public class ImageArray : FileByteTranslator
     public UInt32 imageCount;
     public UInt32 pixelWidth;
     public UInt32 pixelHeight;
-    float[][] pixelValueArray;
-    byte[] labelValueArray;
+    public UInt32 pixelValueArrayOffset;
+    public float[] pixelValueArray;
+    public byte[] labelValueArray;
 
-    public float[][] PixelValueArray => pixelValueArray;
-    public byte[] LabelValueArray => labelValueArray;
+    //public float[] PixelValueArray => pixelValueArray;
+    //public byte[] LabelValueArray => labelValueArray;
 
 
     public override void LoadBytesFromPath()
@@ -29,25 +31,24 @@ public class ImageArray : FileByteTranslator
         imageCount = ReverseBytes(BitConverter.ToUInt32(imageByteArray, IMAGE_COUNT_OFFSET));
         pixelHeight = ReverseBytes(BitConverter.ToUInt32(imageByteArray, IMAGE_HEIGHT_OFFSET));
         pixelWidth = ReverseBytes(BitConverter.ToUInt32(imageByteArray, IMAGE_WIDTH_OFFSET));
+        pixelValueArrayOffset = pixelHeight * pixelWidth;
 
         //Debug.Log(imageCount + " images in array");
         //Debug.Log(pixelHeight + " pixels wide");
         //Debug.Log(pixelWidth + " pixels high");
 
-        pixelValueArray = new float[imageCount][];
+        pixelValueArray = new float[imageCount * pixelValueArrayOffset];
         Debug.Log(pixelValueArray.Length);
         labelValueArray = new byte[imageCount];
-        UInt32 arraySize = pixelHeight * pixelWidth;
         for (int i = 0; i < imageCount; i++)
         {
-            pixelValueArray[i] = new float[arraySize];
             labelValueArray[i] = labelByteArray[8 + i];
-            for (int j = 0; j < arraySize; j++)
+            for (int j = 0; j < pixelValueArrayOffset; j++)
             {
                 byte temp = imageByteArray[
                     IMAGE_IMAGE_START_OFFSET + i * (int)pixelHeight * (int)pixelWidth + j];
 
-                pixelValueArray[i][j] = (float)temp / 255;
+                pixelValueArray[i * pixelValueArrayOffset + j] = (float)temp / 255;
             }
         }
         //System.IO.File.WriteAllBytes("C:/Users/larss/Documents/GitHub/FeedForward/Assets/Data/Test.png", testTexture.EncodeToPNG());
@@ -64,11 +65,11 @@ public class ImageArray : FileByteTranslator
         }
         Texture2D texture = new Texture2D(28, 28);
         texture.filterMode = FilterMode.Point;
-        for (int y = 0; y < 28; y++)
+        for (int i = 0; i < 28; i++)
         {
-            for (int x = 0; x < 28; x++)
+            for (int j = 0; j < 28; j++)
             {
-                texture.SetPixel(x, y, new Color(pixelValueArray[index][x + y * 28], 0, 0));
+                texture.SetPixel(j, i, new Color(pixelValueArray[index * pixelValueArrayOffset + j + i * 28], 0, 0));
             }
         }
         Debug.Log("Generated texture of value '" + labelValueArray[index].ToString() + "' at index '" + index + "'");
@@ -78,8 +79,7 @@ public class ImageArray : FileByteTranslator
 
     public override void CheckBytes()
     {
-        Debug.Log(pixelValueArray[0].Length);
-        Debug.Log(pixelValueArray[imageCount - 1].Length);
+        Debug.Log(pixelValueArray.Length / pixelValueArrayOffset);
     }
 
     static UInt32 ReverseBytes(UInt32 value)

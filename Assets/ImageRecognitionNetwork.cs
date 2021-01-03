@@ -22,28 +22,29 @@ public class ImageRecognitionNetwork : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        guessText.text = "A";
         if (trainedNetwork == null || (trainedNetwork != null && !trainedNetwork.networkSet))
         {
-            //load data
-            trainingImages.LoadBytesFromPath();
-
+            guessText.text = "B";
             //Create training data array
             trainingData = new TrainingData[trainingImages.imageCount];
             uint pixelCount = trainingImages.pixelWidth * trainingImages.pixelHeight;
 
+            guessText.text = "C";
             for (int i = 0; i < trainingImages.imageCount; i++)
             {
                 trainingData[i].input = new float[pixelCount];  //input nodes
                 trainingData[i].targetResult = new float[10];   //target nodes
 
                 //Set data
-                trainingData[i].targetResult[trainingImages.LabelValueArray[i]] = 1f;
+                trainingData[i].targetResult[trainingImages.labelValueArray[i]] = 1f;
                 for (int j = 0; j < pixelCount; j++)
                 {
-                    trainingData[i].input[j] = trainingImages.PixelValueArray[i][j];
+                    trainingData[i].input[j] = trainingImages.pixelValueArray[i * trainingImages.pixelValueArrayOffset + j];
                 }
             }
 
+            guessText.text = "D";
             // (inputNodeCount, hiddenNodeCount, outputNodeCount)
             neuralNetwork = new NeuralNetwork_Matrix(
                    trainingData[0].input.Length,
@@ -51,24 +52,30 @@ public class ImageRecognitionNetwork : MonoBehaviour
                    trainingData[0].targetResult.Length);
 
 
+            guessText.text = "E";
             neuralNetwork.TrainNeuralNetwork(trainingData, 1);
 
 
+            guessText.text = "F";
             if (trainedNetwork != null)
             {
                 trainedNetwork.SetNetworkVariables(neuralNetwork);
             }
+
+            guessText.text = "G";
         }
         else
         {
             neuralNetwork = new NeuralNetwork_Matrix(trainedNetwork);
         }
+        guessText.text = "H";
 
-        testImages.LoadBytesFromPath();
-        if (testNetwork)
-        {
-            TestNeuralNetwork();
-        }
+        //testImages.LoadBytesFromPath();
+        //if (testNetwork)
+        //{
+        //    TestNeuralNetwork();
+        //}
+        guessText.text = "I";
         TestRandomImage();
     }
     private void Update()
@@ -84,10 +91,16 @@ public class ImageRecognitionNetwork : MonoBehaviour
         int failsTotal = 0;
         for (int i = 0; i < testImages.imageCount; i++)
         {
-            float[] result = neuralNetwork.Predict(testImages.PixelValueArray[i]);
-            if (!IsResultCorrect(result, testImages.LabelValueArray[i]))
+            float[] input = new float[testImages.pixelValueArrayOffset];
+            for (int j = 0; j < testImages.pixelValueArrayOffset; j++)
             {
-                fails[testImages.LabelValueArray[i]]++;
+                input[j] = 
+                    testImages.pixelValueArray[i * testImages.pixelValueArrayOffset + j];
+            }
+            float[] result = neuralNetwork.Predict(input);
+            if (!IsResultCorrect(result, testImages.labelValueArray[i]))
+            {
+                fails[testImages.labelValueArray[i]]++;
                 failsTotal++;
             }
         }
@@ -98,7 +111,12 @@ public class ImageRecognitionNetwork : MonoBehaviour
     {
         float certainty = 0;
         int random = Random.Range(0, (int)testImages.imageCount);
-        float[] result = neuralNetwork.Predict(testImages.PixelValueArray[random]);
+        float[] input = new float[testImages.pixelValueArrayOffset];
+        for (int j = 0; j < testImages.pixelValueArrayOffset; j++)
+        {
+            input[j] = testImages.pixelValueArray[random * testImages.pixelValueArrayOffset + j];
+        }
+        float[] result = neuralNetwork.Predict(input);
         image.sprite = Sprite.Create(testImages.GetImage(random), new Rect(0, 0, 28, 28), Vector2.zero);
         guessText.text = GetGuessedValue(result, ref certainty).ToString();
         certaintyText.text = (certainty * 100f).ToString("F2") + '%';

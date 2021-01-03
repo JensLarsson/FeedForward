@@ -66,7 +66,7 @@ public class NeuralNetwork_Matrix
             biasHidden = trainedNetwork.BiasHidden;
             biasOutput = trainedNetwork.BiasOutput;
 
-            activationFunction = new ActivationFunction(trainedNetwork.ActivationFunction);
+            activationFunction = new ActivationFunction(ActivationFunctions.Sigmoid); //This will be fucky
         }
         else
         {

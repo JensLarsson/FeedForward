@@ -38,10 +38,10 @@ public class ImageGenerator : MonoBehaviour
                 trainingData[i].input[10] = RandomGaussian();           //Noise
 
                 //Set data
-                trainingData[i].input[trainingImages.LabelValueArray[i]] = 1f;
+                trainingData[i].input[trainingImages.labelValueArray[i]] = 1f;
                 for (int j = 0; j < pixelCount; j++)
                 {
-                    trainingData[i].targetResult[j] = trainingImages.PixelValueArray[i][j];
+                    trainingData[i].targetResult[j] = trainingImages.pixelValueArray[i * trainingImages.pixelValueArrayOffset + j];
                 }
             }
 

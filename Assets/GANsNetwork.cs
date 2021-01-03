@@ -38,11 +38,11 @@ public class GANsNetwork : MonoBehaviour
                 trainingData[i].targetResult = new float[11];   //target nodes
 
                 //Set data
-                trainingData[i].targetResult[trainingImages.LabelValueArray[i]] = 1f;
+                trainingData[i].targetResult[trainingImages.labelValueArray[i]] = 1f;
                 trainingData[i].targetResult[10] = 1f;
                 for (int j = 0; j < pixelCount; j++)
                 {
-                    trainingData[i].input[j] = trainingImages.PixelValueArray[i][j];
+                    trainingData[i].input[j] = trainingImages.pixelValueArray[i * trainingImages.pixelValueArrayOffset + j];
                 }
 
             }
@@ -157,29 +157,34 @@ public class GANsNetwork : MonoBehaviour
             TestRandomImage();
         }
     }
-    public void TestNeuralNetwork()
-    {
-        int[] fails = new int[10];
-        int failsTotal = 0;
-        for (int i = 0; i < testImages.imageCount; i++)
-        {
-            float[] result = discriminator.Predict(testImages.PixelValueArray[i]);
-            if (!IsResultCorrect(result, testImages.LabelValueArray[i]))
-            {
-                fails[testImages.LabelValueArray[i]]++;
-                failsTotal++;
-            }
-        }
-        Debug.Log($"{failsTotal} fails:");
-        Debug.Log((1 - (float)failsTotal / (float)(testImages.imageCount)) * 100 + " % accurate");
-    }
+    //public void TestNeuralNetwork()
+    //{
+    //    int[] fails = new int[10];
+    //    int failsTotal = 0;
+    //    for (int i = 0; i < testImages.imageCount; i++)
+    //    {
+    //        float[] result = new float[testImages.pixelValueArrayOffset];
+    //        for (int resultIndex = 0; resultIndex < testImages.pixelValueArrayOffset; resultIndex++)
+    //        {
+    //            result[resultIndex] = testImages.PixelValueArray[i * testImages.pixelValueArrayOffset + resultIndex];
+    //        }
+    //        discriminator.Predict(testImages.PixelValueArray[i * testImages.pixelValueArrayOffset]);
+    //        if (!IsResultCorrect(result, testImages.LabelValueArray[i]))
+    //        {
+    //            fails[testImages.LabelValueArray[i]]++;
+    //            failsTotal++;
+    //        }
+    //    }
+    //    Debug.Log($"{failsTotal} fails:");
+    //    Debug.Log((1 - (float)failsTotal / (float)(testImages.imageCount)) * 100 + " % accurate");
+    //}
     public void TestRandomImage()
     {
         float certainty = 0;
         int random = Random.Range(0, (int)testImages.imageCount);
-        float[] result = discriminator.Predict(testImages.PixelValueArray[random]);
+        //float[] result = discriminator.Predict(testImages.PixelValueArray[random]);
         image.sprite = Sprite.Create(testImages.GetImage(random), new Rect(0, 0, 28, 28), Vector2.zero);
-        guessText.text = GetGuessedValue(result, ref certainty).ToString();
+        //guessText.text = GetGuessedValue(result, ref certainty).ToString();
         certaintyText.text = (certainty * 100f).ToString("F2") + '%';
     }
     public void TestImage(float[] input)

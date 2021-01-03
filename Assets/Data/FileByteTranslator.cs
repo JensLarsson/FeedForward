@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEditor;
 using System;
 
+[System.Serializable]
 public class FileByteTranslator : ScriptableObject
 {
     [SerializeField] string imageDataPath;
@@ -22,21 +23,21 @@ public class FileByteTranslator : ScriptableObject
         Debug.Log(imageByteArray.Length);
     }
 }
-#if (UNITY_EDITOR)
-[CustomEditor(typeof(ImageArray))]
-public class CustomInspectorButton : Editor
-{
-    public override void OnInspectorGUI()
-    {
-        DrawDefaultInspector();
-        if (GUILayout.Button("Load Bytes"))
-        {
-            (target as ImageArray).LoadBytesFromPath();
-        }
-        if (GUILayout.Button("Check Bytes"))
-        {
-            (target as ImageArray).CheckBytes();
-        }
-    }
-}
-#endif
+//#if (UNITY_EDITOR)
+//[CustomEditor(typeof(ImageArray))]
+//public class CustomInspectorButton : Editor
+//{
+//    public override void OnInspectorGUI()
+//    {
+//        DrawDefaultInspector();
+//        if (GUILayout.Button("Load Bytes"))
+//        {
+//            (target as ImageArray).LoadBytesFromPath();
+//        }
+//        if (GUILayout.Button("Check Bytes"))
+//        {
+//            (target as ImageArray).CheckBytes();
+//        }
+//    }
+//}
+//#endif
