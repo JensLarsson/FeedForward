@@ -59,8 +59,8 @@ public class Drawing : MonoBehaviour, IPointerDownHandler
                         {
                             if (pixelArray[i + j * 28] < 0.1)
                             {
-                                image.sprite.texture.SetPixel(i, j, new Color(0.9f, 0, 0));
-                                pixelArray[i + j * 28] = 0.9f;
+                                image.sprite.texture.SetPixel(i, j, new Color(1f, 0, 0));
+                                pixelArray[i + j * 28] = 1f;
                             }
                         }
                     }
