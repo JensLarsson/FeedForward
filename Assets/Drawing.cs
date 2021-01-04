@@ -50,10 +50,9 @@ public class Drawing : MonoBehaviour, IPointerDownHandler
             {
                 int x = (int)(mouseInImagePos.x * 28);
                 int y = (int)(mouseInImagePos.y * 28);
-
                 if (x >= PADDING && x < IMAGE_SIZE - PADDING && y >= PADDING && y < IMAGE_SIZE - PADDING)
                 {
-
+                                                                        //Idiotic conditionals
                     for (int i = x > PADDING ? x - 1 : PADDING; i <= (x >= IMAGE_SIZE - 1 - PADDING ? IMAGE_SIZE - 1 - PADDING : x + 1); i++)
                     {
                         for (int j = y > PADDING ? y - 1 : PADDING; j <= (y >= IMAGE_SIZE - 1 - PADDING ? IMAGE_SIZE - 1 - PADDING : y + 1); j++)
@@ -79,12 +78,19 @@ public class Drawing : MonoBehaviour, IPointerDownHandler
         }
     }
 
+
     public void OnPointerDown(PointerEventData eventData)
     {
         if (!drawing)
         {
+                                            //This should be moved to a check of resolution change 
+            Vector3[] pos = new Vector3[4];
+            image.rectTransform.GetWorldCorners(pos);
+            size = pos[3] - pos[1];
+
+            //Reset array and make sprite black
             pixelArray = new float[28 * 28];
-            //image.sprite.texture.SetPixels(0, 0, 28, 28, new Color[28 * 28]);
+
             for (int i = 0; i < 28; i++)
             {
                 for (int j = 0; j < 28; j++)

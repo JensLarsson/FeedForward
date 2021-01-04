@@ -81,7 +81,7 @@ public class TestScript : MonoBehaviour
         for (int i = 0; i < itterations; i++)
         {
             int random = UnityEngine.Random.Range(0, trainingData.Length);
-            float[] result = neuralNetwork.Predict(trainingData[random].input);
+            float[] result = neuralNetwork.Guess(trainingData[random].input);
             if (!IsResultCorrect(result, trainingData[random].targetResult))
             {
                 failsTotal++;

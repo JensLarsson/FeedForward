@@ -37,7 +37,7 @@ public class IrisPrediction : MonoBehaviour
         for (int i = 0; i < itterations; i++)
         {
             int random = Random.Range(0, trainingData.Length);
-            float[] result = neuralNetwork.Predict(trainingData[random].input);
+            float[] result = neuralNetwork.Guess(trainingData[random].input);
 
             Debug.Log($"{result[0]} {result[1]} {result[2]} |||| {trainingData[random].targetResult[0]} {trainingData[random].targetResult[1]} {trainingData[random].targetResult[2]}");
 

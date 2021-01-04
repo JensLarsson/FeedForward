@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine.UI;
 using TMPro;
 
+//ScriptableObjects keep loosing their values, consider replacing
 public class ImageRecognitionNetwork : MonoBehaviour
 {
     public bool testNetwork = true;
@@ -97,7 +98,7 @@ public class ImageRecognitionNetwork : MonoBehaviour
                 input[j] = 
                     testImages.pixelValueArray[i * testImages.pixelValueArrayOffset + j];
             }
-            float[] result = neuralNetwork.Predict(input);
+            float[] result = neuralNetwork.Guess(input);
             if (!IsResultCorrect(result, testImages.labelValueArray[i]))
             {
                 fails[testImages.labelValueArray[i]]++;
@@ -116,7 +117,7 @@ public class ImageRecognitionNetwork : MonoBehaviour
         {
             input[j] = testImages.pixelValueArray[random * testImages.pixelValueArrayOffset + j];
         }
-        float[] result = neuralNetwork.Predict(input);
+        float[] result = neuralNetwork.Guess(input);
         image.sprite = Sprite.Create(testImages.GetImage(random), new Rect(0, 0, 28, 28), Vector2.zero);
         guessText.text = GetGuessedValue(result, ref certainty).ToString();
         certaintyText.text = (certainty * 100f).ToString("F2") + '%';
@@ -124,7 +125,7 @@ public class ImageRecognitionNetwork : MonoBehaviour
     public void TestImage(float[] input)
     {
         float certainty = 0;
-        float[] result = neuralNetwork.Predict(input);
+        float[] result = neuralNetwork.Guess(input);
         guessText.text = GetGuessedValue(result, ref certainty).ToString();
         certaintyText.text = (certainty * 100f).ToString("F2") + '%';
     }

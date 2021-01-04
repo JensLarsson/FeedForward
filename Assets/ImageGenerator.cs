@@ -102,7 +102,7 @@ public class ImageGenerator : MonoBehaviour
         float[] input = new float[11];
         input[targetNumber] = 1;
         input[10] = slider.value;
-        float[] pixelValues = neuralNetwork.Predict(input);
+        float[] pixelValues = neuralNetwork.Guess(input);
         for (int i = 0; i < 28; i++)
         {
             for (int j = 0; j < 28; j++)

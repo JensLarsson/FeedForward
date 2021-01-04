@@ -89,9 +89,9 @@ public class GANsNetwork : MonoBehaviour
                  trainingData[random].targetResult[9],
                  RandomGaussian()
         };
-            float[] generatedImage = generator.Predict(generatorInput);
-            float[] realOutput = discriminator.Predict(trainingData[random].input);
-            float[] fakeOutput = discriminator.Predict(generatedImage);
+            float[] generatedImage = generator.Guess(generatorInput);
+            float[] realOutput = discriminator.Guess(trainingData[random].input);
+            float[] fakeOutput = discriminator.Guess(generatedImage);
 
             float discriminatorLoss = CalculateLoss(realOutput);
             float generatorLoss = CalculateLoss(fakeOutput);
@@ -190,7 +190,7 @@ public class GANsNetwork : MonoBehaviour
     public void TestImage(float[] input)
     {
         float certainty = 0;
-        float[] result = discriminator.Predict(input);
+        float[] result = discriminator.Guess(input);
         guessText.text = GetGuessedValue(result, ref certainty).ToString();
         certaintyText.text = (certainty * 100f).ToString("F2") + '%';
     }
