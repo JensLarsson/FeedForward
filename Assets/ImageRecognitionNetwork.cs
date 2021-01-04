@@ -70,8 +70,12 @@ public class ImageRecognitionNetwork : MonoBehaviour
             neuralNetwork = new NeuralNetwork_Matrix(trainedNetwork);
         }
         guessText.text = "H";
-
-        //testImages.LoadBytesFromPath();
+#if UNITY_EDITOR
+        if (testImages.pixelValueArray.Length == 0)
+        {
+            testImages.LoadBytesFromPath();
+        }
+#endif
         //if (testNetwork)
         //{
         //    TestNeuralNetwork();
@@ -95,7 +99,7 @@ public class ImageRecognitionNetwork : MonoBehaviour
             float[] input = new float[testImages.pixelValueArrayOffset];
             for (int j = 0; j < testImages.pixelValueArrayOffset; j++)
             {
-                input[j] = 
+                input[j] =
                     testImages.pixelValueArray[i * testImages.pixelValueArrayOffset + j];
             }
             float[] result = neuralNetwork.Guess(input);
