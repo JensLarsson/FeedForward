@@ -52,7 +52,7 @@ public class Drawing : MonoBehaviour, IPointerDownHandler
                 int y = (int)(mouseInImagePos.y * 28);
                 if (x >= PADDING && x < IMAGE_SIZE - PADDING && y >= PADDING && y < IMAGE_SIZE - PADDING)
                 {
-                                                                        //Idiotic conditionals
+                    //Idiotic conditionals
                     for (int i = x > PADDING ? x - 1 : PADDING; i <= (x >= IMAGE_SIZE - 1 - PADDING ? IMAGE_SIZE - 1 - PADDING : x + 1); i++)
                     {
                         for (int j = y > PADDING ? y - 1 : PADDING; j <= (y >= IMAGE_SIZE - 1 - PADDING ? IMAGE_SIZE - 1 - PADDING : y + 1); j++)
@@ -68,7 +68,9 @@ public class Drawing : MonoBehaviour, IPointerDownHandler
                     image.sprite.texture.Apply();
                     pixelArray[x + y * 28] = 1f;
 
-                    network.TestImage(pixelArray);
+
+                    
+                    network.TestImage(GetCenteredArrayByWeight(pixelArray));
                 }
             }
         }
@@ -78,12 +80,48 @@ public class Drawing : MonoBehaviour, IPointerDownHandler
         }
     }
 
+    float[] GetCenteredArrayByWeight(float[] values)
+    {
+        float x = 0;
+        float y = 0;
+        float mass = 0;
+
+        for (int i = 0; i < IMAGE_SIZE; i++)
+        {
+            for (int j = 0; j < IMAGE_SIZE; j++)
+            {
+                x += i * values[i * IMAGE_SIZE + j];
+                y += j * values[i * IMAGE_SIZE + j];
+                mass += values[i * IMAGE_SIZE + j];
+            }
+        }
+        x /= mass;
+        y /= mass;
+        //offset
+        int xOffset = -((int)x - (IMAGE_SIZE / 2));
+        int yOffset = -((int)y - (IMAGE_SIZE / 2));
+        //itteration Max
+        int xMaxIndex = xOffset < 0 ? IMAGE_SIZE + xOffset : IMAGE_SIZE;
+        int yMaxIndex = yOffset < 0 ? IMAGE_SIZE + yOffset : IMAGE_SIZE;//<<<
+
+        float[] newArray = new float[values.Length];
+        for (int i = xOffset > 0 ? xOffset : 0; i < xMaxIndex; i++)
+        {
+            for (int j = yOffset > 0 ? yOffset : 0; j < yMaxIndex; j++)
+            {
+                newArray[(i) * IMAGE_SIZE + (j)] = values[(i - xOffset) * IMAGE_SIZE + (j - yOffset)];
+            }
+        }
+        Debug.Log(values);
+        Debug.Log(newArray);
+        return newArray;
+    }
 
     public void OnPointerDown(PointerEventData eventData)
     {
         if (!drawing)
         {
-                                            //This should be moved to a check of resolution change 
+            //This should be moved to a check of resolution change 
             Vector3[] pos = new Vector3[4];
             image.rectTransform.GetWorldCorners(pos);
             size = pos[3] - pos[1];
