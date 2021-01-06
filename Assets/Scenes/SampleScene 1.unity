@@ -788,7 +788,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0.56078434, g: 0.1470867, b: 0.3460007, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -861,13 +861,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 094e5e716bf4096449fea70775a04fd3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  testNetwork: 1
+  testNetwork: 0
   image: {fileID: 1854660912}
   guessText: {fileID: 1879629638}
   certaintyText: {fileID: 936943627}
   trainingImages: {fileID: 11400000, guid: 5dd56075933f6c04b9ae656cd4835605, type: 2}
   testImages: {fileID: 11400000, guid: 46ed57e6707568543b134b125e3f4116, type: 2}
-  trainedNetwork: {fileID: 11400000, guid: 5dc55cbcff5fe5c4eaf3707af59d02a0, type: 2}
+  trainedNetwork: {fileID: 11400000, guid: 9f60af9111466ba49804906e127f5a82, type: 2}
 --- !u!114 &1386837796
 MonoBehaviour:
   m_ObjectHideFlags: 0

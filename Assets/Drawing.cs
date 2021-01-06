@@ -11,6 +11,12 @@ public class Drawing : MonoBehaviour, IPointerDownHandler
 
     [SerializeField] ImageRecognitionNetwork network;
 
+    float[,] drawValues =
+    {
+        {0.5f,1.0f,0.5f },
+        {1.0f,1.0f,1.0f },
+        {0.5f,1.0f,0.5f },
+    };
 
 
     Image image;
@@ -50,28 +56,34 @@ public class Drawing : MonoBehaviour, IPointerDownHandler
             {
                 int x = (int)(mouseInImagePos.x * 28);
                 int y = (int)(mouseInImagePos.y * 28);
-                if (x >= PADDING && x < IMAGE_SIZE - PADDING && y >= PADDING && y < IMAGE_SIZE - PADDING)
+                //Idiotic conditionals
+                for (int i = -1; i <= 1; i++)
                 {
-                    //Idiotic conditionals
-                    for (int i = x > PADDING ? x - 1 : PADDING; i <= (x >= IMAGE_SIZE - 1 - PADDING ? IMAGE_SIZE - 1 - PADDING : x + 1); i++)
+                    for (int j = -1; j <= 1; j++)
                     {
-                        for (int j = y > PADDING ? y - 1 : PADDING; j <= (y >= IMAGE_SIZE - 1 - PADDING ? IMAGE_SIZE - 1 - PADDING : y + 1); j++)
+                        if (x + i >= PADDING && x + i < IMAGE_SIZE - PADDING && y + j >= PADDING && y + j < IMAGE_SIZE - PADDING)
                         {
-                            if (pixelArray[i + j * 28] < 0.1)
-                            {
-                                image.sprite.texture.SetPixel(i, j, new Color(1f, 0, 0));
-                                pixelArray[i + j * 28] = 1f;
-                            }
+                            float value = pixelArray[x + i + (y + j) * 28];
+                            value = value > drawValues[i + 1, j + 1] ? value : drawValues[i + 1, j + 1];
+                            image.sprite.texture.SetPixel(i + x, j + y, new Color(value, 0, 0));
+                            pixelArray[x + i + (y + j) * 28] = value;
                         }
                     }
-                    image.sprite.texture.SetPixel(x, y, Color.red);
-                    image.sprite.texture.Apply();
-                    pixelArray[x + y * 28] = 1f;
-
-
-                    
-                    network.TestImage(GetCenteredArrayByWeight(pixelArray));
                 }
+                //for (int i = x > PADDING ? x - 1 : PADDING; i <= (x >= IMAGE_SIZE - 1 - PADDING ? IMAGE_SIZE - 1 - PADDING : x + 1); i++)
+                //{
+                //    for (int j = y > PADDING ? y - 1 : PADDING; j <= (y >= IMAGE_SIZE - 1 - PADDING ? IMAGE_SIZE - 1 - PADDING : y + 1); j++)
+                //    {
+                //        if (pixelArray[i + j * 28] < 0.1)
+                //        {
+                //            image.sprite.texture.SetPixel(i, j, new Color(1f, 0, 0));
+                //            pixelArray[i + j * 28] = drawValues[i, j];
+                //        }
+                //    }
+                //}
+
+                image.sprite.texture.Apply();
+                network.TestImage(GetCenteredArrayByWeight(pixelArray));
             }
         }
         if (Input.GetKeyDown(KeyCode.Space))
@@ -112,8 +124,6 @@ public class Drawing : MonoBehaviour, IPointerDownHandler
                 newArray[(i) * IMAGE_SIZE + (j)] = values[(i - xOffset) * IMAGE_SIZE + (j - yOffset)];
             }
         }
-        Debug.Log(values);
-        Debug.Log(newArray);
         return newArray;
     }
 

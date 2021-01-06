@@ -8,6 +8,8 @@ using TMPro;
 //ScriptableObjects keep loosing their values, consider replacing
 public class ImageRecognitionNetwork : MonoBehaviour
 {
+    const int NOISE_TRAINING_AMOUNT = 6000;
+
     public bool testNetwork = true;
     [SerializeField] Image image;
     [SerializeField] TMP_Text guessText;
@@ -26,16 +28,17 @@ public class ImageRecognitionNetwork : MonoBehaviour
         guessText.text = "A";
         if (trainedNetwork == null || (trainedNetwork != null && !trainedNetwork.networkSet))
         {
+            trainingImages.LoadBytesFromPath();
             guessText.text = "B";
             //Create training data array
-            trainingData = new TrainingData[trainingImages.imageCount];
+            trainingData = new TrainingData[trainingImages.imageCount + NOISE_TRAINING_AMOUNT];
             uint pixelCount = trainingImages.pixelWidth * trainingImages.pixelHeight;
 
             guessText.text = "C";
             for (int i = 0; i < trainingImages.imageCount; i++)
             {
                 trainingData[i].input = new float[pixelCount];  //input nodes
-                trainingData[i].targetResult = new float[10];   //target nodes
+                trainingData[i].targetResult = new float[11];   //target nodes
 
                 //Set data
                 trainingData[i].targetResult[trainingImages.labelValueArray[i]] = 1f;
@@ -44,6 +47,20 @@ public class ImageRecognitionNetwork : MonoBehaviour
                     trainingData[i].input[j] = trainingImages.pixelValueArray[i * trainingImages.pixelValueArrayOffset + j];
                 }
             }
+
+            for (int i = 0; i < NOISE_TRAINING_AMOUNT; i++)
+            {
+                trainingData[trainingImages.imageCount + i].input = new float[pixelCount];  //input nodes
+                trainingData[trainingImages.imageCount + i].targetResult = new float[11];   //target nodes
+                trainingData[trainingImages.imageCount + i].targetResult[10] = 1f;
+
+                for (int j = 0; j < pixelCount; j++)
+                {
+                    trainingData[trainingImages.imageCount + i].input[j] = Random.Range(0f, 1f);
+                }
+            }
+
+
 
             guessText.text = "D";
             // (inputNodeCount, hiddenNodeCount, outputNodeCount)
@@ -54,7 +71,7 @@ public class ImageRecognitionNetwork : MonoBehaviour
 
 
             guessText.text = "E";
-            neuralNetwork.TrainNeuralNetwork(trainingData, 1);
+            neuralNetwork.TrainNeuralNetwork(trainingData, 70000, true);
 
 
             guessText.text = "F";
@@ -76,10 +93,10 @@ public class ImageRecognitionNetwork : MonoBehaviour
             testImages.LoadBytesFromPath();
         }
 #endif
-        //if (testNetwork)
-        //{
-        //    TestNeuralNetwork();
-        //}
+        if (testNetwork)
+        {
+            TestNeuralNetwork();
+        }
         guessText.text = "I";
         TestRandomImage();
     }
@@ -130,7 +147,8 @@ public class ImageRecognitionNetwork : MonoBehaviour
     {
         float certainty = 0;
         float[] result = neuralNetwork.Guess(input);
-        guessText.text = GetGuessedValue(result, ref certainty).ToString();
+        int guessedValue = GetGuessedValue(result, ref certainty);
+        guessText.text = guessedValue == 10 ? ((char)8).ToString() : guessedValue.ToString();
         certaintyText.text = (certainty * 100f).ToString("F2") + '%';
     }
 
