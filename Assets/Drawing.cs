@@ -7,7 +7,6 @@ using UnityEngine.EventSystems;
 public class Drawing : MonoBehaviour, IPointerDownHandler
 {
     const int IMAGE_SIZE = 28;
-    const int PADDING = 2;
 
     [SerializeField] ImageRecognitionNetwork network;
 
@@ -18,50 +17,41 @@ public class Drawing : MonoBehaviour, IPointerDownHandler
         {0.5f,1.0f,0.5f },
     };
 
-
     Image image;
-    Camera camera;
-    Canvas canvas;
-    Vector2 size;
+    Vector2 imageRealPixelSize;
     float[] pixelArray = new float[28 * 28];
 
-    bool drawing = false;
+    bool usDrawing = false;
 
     private void Start()
     {
-        camera = Camera.main;
         if (image == null)
         {
             image = GetComponent<Image>();
         }
-        canvas = transform.parent.GetComponent<Canvas>();
-        Vector3[] pos = new Vector3[4];
-        image.rectTransform.GetWorldCorners(pos);
-        size = pos[3] - pos[1];
     }
 
     private void Update()
     {
-        if (drawing && Input.GetMouseButton(0))
+        if (usDrawing && Input.GetMouseButton(0))
         {
             Vector2 mouseInImagePos = Input.mousePosition - image.rectTransform.position;
-            mouseInImagePos /= size;
-            mouseInImagePos.x += 0.5f;
+            mouseInImagePos /= imageRealPixelSize;              //MousePos to -0.5 - 0.5
+            mouseInImagePos.x += 0.5f;                          //MousePos to 0.0 - 1.0
             mouseInImagePos.y += 0.5f;
-            mouseInImagePos.y = 1 - mouseInImagePos.y;
+            mouseInImagePos.y = 1 - mouseInImagePos.y;          //Flipping to match dataset
 
-            //Sloppy code to restrict drawing to the middle
-            //This should be replaced either with more training or normalizing the position of the drawn number
+
             if (mouseInImagePos.x > 0f && mouseInImagePos.x < 1f && mouseInImagePos.y > 0f && mouseInImagePos.y < 1f)
             {
                 int x = (int)(mouseInImagePos.x * 28);
                 int y = (int)(mouseInImagePos.y * 28);
-                //Idiotic conditionals
+
                 for (int i = -1; i <= 1; i++)
                 {
                     for (int j = -1; j <= 1; j++)
                     {
-                        if (x + i >= PADDING && x + i < IMAGE_SIZE - PADDING && y + j >= PADDING && y + j < IMAGE_SIZE - PADDING)
+                        if (x + i >= 0 && x + i < IMAGE_SIZE && y + j >= 0 && y + j < IMAGE_SIZE)
                         {
                             float value = pixelArray[x + i + (y + j) * 28];
                             value = value > drawValues[i + 1, j + 1] ? value : drawValues[i + 1, j + 1];
@@ -70,17 +60,6 @@ public class Drawing : MonoBehaviour, IPointerDownHandler
                         }
                     }
                 }
-                //for (int i = x > PADDING ? x - 1 : PADDING; i <= (x >= IMAGE_SIZE - 1 - PADDING ? IMAGE_SIZE - 1 - PADDING : x + 1); i++)
-                //{
-                //    for (int j = y > PADDING ? y - 1 : PADDING; j <= (y >= IMAGE_SIZE - 1 - PADDING ? IMAGE_SIZE - 1 - PADDING : y + 1); j++)
-                //    {
-                //        if (pixelArray[i + j * 28] < 0.1)
-                //        {
-                //            image.sprite.texture.SetPixel(i, j, new Color(1f, 0, 0));
-                //            pixelArray[i + j * 28] = drawValues[i, j];
-                //        }
-                //    }
-                //}
 
                 image.sprite.texture.Apply();
                 network.TestImage(GetCenteredArrayByWeight(pixelArray));
@@ -88,7 +67,7 @@ public class Drawing : MonoBehaviour, IPointerDownHandler
         }
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            drawing = false;
+            usDrawing = false;
         }
     }
 
@@ -98,6 +77,7 @@ public class Drawing : MonoBehaviour, IPointerDownHandler
         float y = 0;
         float mass = 0;
 
+        //read values
         for (int i = 0; i < IMAGE_SIZE; i++)
         {
             for (int j = 0; j < IMAGE_SIZE; j++)
@@ -109,13 +89,16 @@ public class Drawing : MonoBehaviour, IPointerDownHandler
         }
         x /= mass;
         y /= mass;
+
         //offset
         int xOffset = -((int)x - (IMAGE_SIZE / 2));
         int yOffset = -((int)y - (IMAGE_SIZE / 2));
+
         //itteration Max
         int xMaxIndex = xOffset < 0 ? IMAGE_SIZE + xOffset : IMAGE_SIZE;
         int yMaxIndex = yOffset < 0 ? IMAGE_SIZE + yOffset : IMAGE_SIZE;//<<<
 
+        //Create new array with values moved
         float[] newArray = new float[values.Length];
         for (int i = xOffset > 0 ? xOffset : 0; i < xMaxIndex; i++)
         {
@@ -129,12 +112,12 @@ public class Drawing : MonoBehaviour, IPointerDownHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (!drawing)
+        if (!usDrawing)
         {
             //This should be moved to a check of resolution change 
             Vector3[] pos = new Vector3[4];
             image.rectTransform.GetWorldCorners(pos);
-            size = pos[3] - pos[1];
+            imageRealPixelSize = pos[3] - pos[1];
 
             //Reset array and make sprite black
             pixelArray = new float[28 * 28];
@@ -146,7 +129,7 @@ public class Drawing : MonoBehaviour, IPointerDownHandler
                     image.sprite.texture.SetPixel(i, j, Color.black);
                 }
             }
-            drawing = true;
+            usDrawing = true;
         }
     }
 }
