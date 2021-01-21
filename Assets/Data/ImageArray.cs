@@ -63,9 +63,30 @@ public class ImageArray : FileByteTranslator
             Debug.LogError("Index out of range");
             return null;
         }
-        Texture2D texture = new Texture2D(28, 28);
+        Texture2D texture = new Texture2D(28, 28, TextureFormat.R8, false);
         texture.filterMode = FilterMode.Point;
         for (int i = 0; i < 28; i++)
+        {
+            for (int j = 0; j < 28; j++)
+            {
+                texture.SetPixel(j, i, new Color(pixelValueArray[index * pixelValueArrayOffset + j + i * 28], 0, 0));
+            }
+        }
+        Debug.Log("Generated texture of value '" + labelValueArray[index].ToString() + "' at index '" + index + "'");
+        texture.Apply();
+        return texture;
+    }
+
+    public Texture2D GetImageFlipped(int index)
+    {
+        if (index >= pixelValueArray.Length)
+        {
+            Debug.LogError("Index out of range");
+            return null;
+        }
+        Texture2D texture = new Texture2D(28, 28, TextureFormat.R8, false);
+        texture.filterMode = FilterMode.Point;
+        for (int i = 27; i >= 0; i--)
         {
             for (int j = 0; j < 28; j++)
             {

@@ -8,7 +8,7 @@ public class Drawing : MonoBehaviour, IPointerDownHandler
 {
     const int IMAGE_SIZE = 28;
 
-    [SerializeField] ImageRecognitionNetwork network;
+    [SerializeField] BarracudaTest network;
 
     float[,] drawValues =
     {
